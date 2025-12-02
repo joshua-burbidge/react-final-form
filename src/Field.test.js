@@ -801,7 +801,7 @@ describe("Field", () => {
     );
     expect(red).toHaveBeenCalled();
     expect(red).toHaveBeenCalledTimes(2);
-    expect(red.mock.calls[0][0].input.checked).toBe(false);
+    expect(red.mock.calls[0][0].input.checked).toBe(true); // Correctly true from first render
     expect(red.mock.calls[1][0].input.checked).toBe(true); // Correctly true for "red" radio
     expect(green).toHaveBeenCalled();
     expect(green).toHaveBeenCalledTimes(2);
@@ -809,8 +809,8 @@ describe("Field", () => {
     expect(green.mock.calls[1][0].input.checked).toBe(false); // Correctly false for "green" radio
     expect(blue).toHaveBeenCalled();
     expect(blue).toHaveBeenCalledTimes(2);
-    expect(blue.mock.calls[0][0].input.checked).toBe(false);
-    expect(blue.mock.calls[1][0].input.checked).toBe(true); // Correctly false for "blue" radio
+    expect(blue.mock.calls[0][0].input.checked).toBe(true); // Correctly true from first render
+    expect(blue.mock.calls[1][0].input.checked).toBe(true); // Correctly true for "blue" radio
   });
 
   it("should render radio buttons with checked prop", () => {
@@ -884,7 +884,7 @@ describe("Field", () => {
     expect(red.mock.calls[1][0].input.checked).toBe(false); // Correctly false for "red" radio
     expect(green).toHaveBeenCalled();
     expect(green).toHaveBeenCalledTimes(2);
-    expect(green.mock.calls[0][0].input.checked).toBe(false);
+    expect(green.mock.calls[0][0].input.checked).toBe(true); // Correctly true from first render
     expect(green.mock.calls[1][0].input.checked).toBe(true); // Correctly true for "green" radio
     expect(blue).toHaveBeenCalled();
     expect(blue).toHaveBeenCalledTimes(2);
@@ -1008,12 +1008,8 @@ describe("Field", () => {
       </Form>,
     );
 
-    // React is stricter about select multiple validation, so we expect one warning
-    // about the select multiple value not being an array initially
-    expect(errorSpy).toHaveBeenCalledTimes(1);
-    expect(errorSpy.mock.calls[0][0]).toContain(
-      "The `%s` prop supplied to <select> must be an array if `multiple` is true",
-    );
+    // With the fix, select multiple now gets [] as initial value, so no React warning
+    expect(errorSpy).toHaveBeenCalledTimes(0);
 
     // Reset the spy to test the actual Field warnings
     errorSpy.mockClear();
