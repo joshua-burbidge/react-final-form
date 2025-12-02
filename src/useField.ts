@@ -95,27 +95,34 @@ function useField<
       validateFields,
     });
 
-  // Initialize state with proper field state from Final Form without callbacks
+  // Initialize state with proper field state from Final Form
   const [state, setState] = React.useState<FieldState<any>>(() => {
-    // Get the current field state from Final Form without registering callbacks
+    // Try to get existing field state without registering
     const existingFieldState = form.getFieldState(name as keyof FormValues);
-
+    
     if (existingFieldState) {
       // If allowNull is true and the initial value was null, preserve it
-      // (and its formatted version is not null, meaning it was formatted away)
       if (allowNull && existingFieldState.initial === null && existingFieldState.value !== null) {
         return {
           ...existingFieldState,
-          value: null,   // Force value back to null
-          initial: null, // Ensure our local state's 'initial' also reflects this
+          value: null,
+          initial: null,
         };
       }
       return existingFieldState;
     }
 
-    // If no existing state, create a proper initial state
-    let initialStateValue = initialValue;
-    if (component === "select" && multiple && initialValue === undefined) {
+    // If no existing field state, check if there's a value in form's initialValues
+    const formState = form.getState();
+    const formInitialValue = formState.initialValues?.[name as keyof FormValues];
+    
+    // Determine the initial value to use
+    let initialStateValue = initialValue !== undefined ? initialValue : 
+                           defaultValue !== undefined ? defaultValue :
+                           formInitialValue !== undefined ? formInitialValue :
+                           undefined;
+    
+    if (component === "select" && multiple && initialStateValue === undefined) {
       initialStateValue = [];
     }
 
@@ -124,17 +131,17 @@ function useField<
       blur: () => { },
       change: () => { },
       data: data || {},
-      dirty: false,
+      dirty: defaultValue !== undefined && defaultValue !== initialStateValue,
       dirtySinceLastSubmit: false,
       error: undefined,
       focus: () => { },
-      initial: initialStateValue,
+      initial: initialValue !== undefined ? initialValue : formInitialValue,
       invalid: false,
       length: undefined,
       modified: false,
       modifiedSinceLastSubmit: false,
       name,
-      pristine: true,
+      pristine: defaultValue === undefined || defaultValue === (initialValue !== undefined ? initialValue : formInitialValue),
       submitError: undefined,
       submitFailed: false,
       submitSucceeded: false,
@@ -148,7 +155,7 @@ function useField<
   });
 
   React.useEffect(() => {
-    // Register field after the initial render to avoid setState during render
+    // Register field after the initial render
     const unregister = register((newState) => {
       setState((prevState) => {
         // Only update if the state actually changed
