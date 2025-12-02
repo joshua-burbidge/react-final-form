@@ -508,4 +508,90 @@ describe("useField", () => {
     expect(calls).toContain("test"); // At least one call with 'test'
     expect(calls[calls.length - 1]).toBe(null); // Last call is null
   });
+
+  it("should render with initialValue on first render without re-rendering", () => {
+    const renderSpy = jest.fn();
+    const MyField = ({ name }) => {
+      const { input } = useField(name, {
+        subscription: { value: true },
+        initialValue: "initial value",
+      });
+      renderSpy(input.value);
+      return <input {...input} data-testid={name} />;
+    };
+    
+    const { getByTestId } = render(
+      <Form onSubmit={onSubmitMock}>
+        {() => (
+          <form>
+            <MyField name="myField" />
+          </form>
+        )}
+      </Form>,
+    );
+
+    // The field should render with the initial value immediately
+    // without first rendering as undefined
+    expect(renderSpy).toHaveBeenCalledTimes(2); // Once for initial + once for form registration
+    expect(renderSpy.mock.calls[0][0]).toBe("initial value");
+    expect(renderSpy.mock.calls[1][0]).toBe("initial value");
+    expect(getByTestId("myField").value).toBe("initial value");
+  });
+
+  it("should render with form initialValues on first render without re-rendering", () => {
+    const renderSpy = jest.fn();
+    const MyField = ({ name }) => {
+      const { input } = useField(name, {
+        subscription: { value: true },
+      });
+      renderSpy(input.value);
+      return <input {...input} data-testid={name} />;
+    };
+    
+    const { getByTestId } = render(
+      <Form onSubmit={onSubmitMock} initialValues={{ myField: "form initial" }}>
+        {() => (
+          <form>
+            <MyField name="myField" />
+          </form>
+        )}
+      </Form>,
+    );
+
+    // The field should render with the form's initial value immediately
+    // without first rendering as undefined or empty string
+    expect(renderSpy).toHaveBeenCalledTimes(2); // Once for initial + once for form registration
+    expect(renderSpy.mock.calls[0][0]).toBe("form initial");
+    expect(renderSpy.mock.calls[1][0]).toBe("form initial");
+    expect(getByTestId("myField").value).toBe("form initial");
+  });
+
+  it("should render with defaultValue on first render without re-rendering", () => {
+    const renderSpy = jest.fn();
+    const MyField = ({ name }) => {
+      const { input } = useField(name, {
+        subscription: { value: true },
+        defaultValue: "default value",
+      });
+      renderSpy(input.value);
+      return <input {...input} data-testid={name} />;
+    };
+    
+    const { getByTestId } = render(
+      <Form onSubmit={onSubmitMock}>
+        {() => (
+          <form>
+            <MyField name="myField" />
+          </form>
+        )}
+      </Form>,
+    );
+
+    // The field should render with the default value immediately
+    // without first rendering as undefined or empty string
+    expect(renderSpy).toHaveBeenCalledTimes(2); // Once for initial + once for form registration
+    expect(renderSpy.mock.calls[0][0]).toBe("default value");
+    expect(renderSpy.mock.calls[1][0]).toBe("default value");
+    expect(getByTestId("myField").value).toBe("default value");
+  });
 });
